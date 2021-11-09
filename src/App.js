@@ -30,43 +30,64 @@ function App() {
     fetchData();
   }, []);
 
-  const addToCart = (name, price, index) => {
+  const addToCart = (name, price, id, index) => {
     // fonction utilisé pour le panier (quand on clique sur un des menus)
     const goToCart = [...toCart];
     const newCart = [...cart];
-
-    if (newCart.indexOf(index) === -1) {
+    // console.log(id);
+    // goToCart.push({
+    //   id: { id },
+    //   name: { name },
+    //   price: { price },
+    //   num: 1,
+    // });
+    // setToCart(goToCart);
+    // console.log(goToCart[index].id);
+    if (goToCart.length !== 0) {
+      if (newCart.indexOf(id) === -1) {
+        goToCart.push({
+          id: { id },
+          name: { name },
+          price: { price },
+          num: 1,
+        });
+        newCart.push(id);
+        setCart(newCart);
+        setToCart(goToCart);
+        console.log(toCart);
+      } else {
+        // console.log(index);
+        goToCart[index].num++;
+        setToCart(goToCart);
+      }
+    } else {
       goToCart.push({
-        id: { index },
+        id: { id },
         name: { name },
         price: { price },
         num: 1,
       });
-      newCart.push(index);
+      newCart.push(id);
+      setToCart(goToCart);
       setCart(newCart);
-      setToCart(goToCart);
-    } else {
-      goToCart[newCart.indexOf(index)].num =
-        goToCart[newCart.indexOf(index)].num + 1;
-      setToCart(goToCart);
     }
 
-    const newPrice = cartPrice + Number(price);
+    const newPrice = (cartPrice + Number(price)).toFixed(2);
     setCartPrice(newPrice);
   };
 
   const clickMinus = (index) => {
     const goToCart = [...toCart];
-    setToCart(goToCart);
+    // setToCart(goToCart);
     const add = toCart[index].num;
-    if (add > 0) {
-      goToCart[index].num = add - 1;
+    if (add > 1) {
+      goToCart[index].num--;
       setToCart(goToCart);
     } else {
       goToCart.splice(index, 1);
       setToCart(goToCart);
     }
-    const newPrice = cartPrice - Number(toCart[index].price.price);
+    const newPrice = (cartPrice - Number(toCart[index].price.price)).toFixed(2);
     setCartPrice(newPrice);
   };
   const clickPlus = (index) => {
@@ -74,7 +95,7 @@ function App() {
     const add = toCart[index].num;
     goToCart[index].num = add + 1;
     setToCart(goToCart);
-    const newPrice = cartPrice + Number(toCart[index].price.price);
+    const newPrice = (cartPrice + Number(toCart[index].price.price)).toFixed(2);
     setCartPrice(newPrice);
   };
 
@@ -87,7 +108,7 @@ function App() {
         <div className="part2">
           {data.categories
             .map((elem, index) => {
-              return <Category elem={elem} addToCart={addToCart} />;
+              return <Category elem={elem} addToCart={addToCart} key={index} />;
             })
             .slice(0, 6)}
         </div>
@@ -98,7 +119,7 @@ function App() {
           ) : (
             <button disabled>Valider mon panier</button>
           )}
-          {Number(cartPrice) !== 0 &&
+          {toCart.length > 0 &&
             toCart.map((elem, index) => {
               return (
                 <div className="cart1" key={index}>
@@ -122,11 +143,11 @@ function App() {
                 </div>
               );
             })}
-          {Number(cartPrice) !== 0 ? (
+          {toCart.length > 0 ? (
             <div>
               <div className="cart1 bordered">
                 <span>Sous-total</span>
-                <span>{Number(cartPrice)} €</span>
+                <span>{Number(cartPrice).toFixed(2)} €</span>
               </div>
               <div className="cart1">
                 <span>Frais de livraison</span>
@@ -134,7 +155,7 @@ function App() {
               </div>
               <div className="cart1 bordered last">
                 <span>Total</span>
-                <span>{Number(cartPrice) + 2.5} €</span>
+                <span>{(Number(cartPrice) + 2.5).toFixed(2)} €</span>
               </div>
             </div>
           ) : (

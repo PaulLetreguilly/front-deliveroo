@@ -6,7 +6,14 @@ const Category = ({ elem, addToCart }) => {
       <h2>{elem.name}</h2>
       <div className="menu">
         {elem.meals.map((elem, index) => {
-          return <Meal key={elem.id} meal={elem} addToCart={addToCart} />;
+          return (
+            <Meal
+              key={elem.id}
+              meal={elem}
+              addToCart={addToCart}
+              index={index}
+            />
+          );
         })}
       </div>
     </div>
