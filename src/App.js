@@ -2,19 +2,18 @@ import "./App.css";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faStar } from "@fortawesome/free-solid-svg-icons";
+import { faStar, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-library.add(faStar);
+import Hero from "./components/Hero";
+import Category from "./components/Category";
+library.add(faStar, faPlus, faMinus);
 
 function App() {
   const [data, setData] = useState();
   const [isLoading, setIsLoading] = useState(true);
-  const [toCart, setToCart] = useState([]);
-  const [cartPrice, setCartPrice] = useState(0);
-  // const [cartName, setCartName] = useState([]);
-
-  // const test = [...toCart];
-  // const num = 0;
+  const [toCart, setToCart] = useState([]); // tableau (vide initialement) d'objet pour le panier
+  const [cartPrice, setCartPrice] = useState(0); // état utilisé pour le prix total du panier
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,7 +21,6 @@ function App() {
         const response = await axios.get(
           "https://my-backend-deliveroo.herokuapp.com/"
         );
-        console.log(response.data);
         setData(response.data);
         setIsLoading(false);
       } catch (error) {
@@ -32,104 +30,99 @@ function App() {
     fetchData();
   }, []);
 
-  const addToCart = (name, price) => {
+  const addToCart = (name, price, index) => {
+    // fonction utilisé pour le panier (quand on clique sur un des menus)
     const goToCart = [...toCart];
-    // const number= num +1;
-    // goToCart.map((elem, index) => {
-    //   if (elem && elem.name === name) {
-    //     return (elem.num = elem.num + 1);
-    //   } else {
-    //     return goToCart.push({ name: { name }, price: { price } });
-    //   }
-    // });
-    goToCart.push({ name: { name }, price: { price }, num: 1 });
+    const newCart = [...cart];
+
+    if (newCart.indexOf(index) === -1) {
+      goToCart.push({
+        id: { index },
+        name: { name },
+        price: { price },
+        num: 1,
+      });
+      newCart.push(index);
+      setCart(newCart);
+      setToCart(goToCart);
+    } else {
+      goToCart[newCart.indexOf(index)].num =
+        goToCart[newCart.indexOf(index)].num + 1;
+      setToCart(goToCart);
+    }
 
     const newPrice = cartPrice + Number(price);
     setCartPrice(newPrice);
-    // const newName = [...cartName];
-    // newName.push(name);
-    // setCartName(newName);
+  };
 
+  const clickMinus = (index) => {
+    const goToCart = [...toCart];
     setToCart(goToCart);
+    const add = toCart[index].num;
+    if (add > 0) {
+      goToCart[index].num = add - 1;
+      setToCart(goToCart);
+    } else {
+      goToCart.splice(index, 1);
+      setToCart(goToCart);
+    }
+    const newPrice = cartPrice - Number(toCart[index].price.price);
+    setCartPrice(newPrice);
+  };
+  const clickPlus = (index) => {
+    const goToCart = [...toCart];
+    const add = toCart[index].num;
+    goToCart[index].num = add + 1;
+    setToCart(goToCart);
+    const newPrice = cartPrice + Number(toCart[index].price.price);
+    setCartPrice(newPrice);
   };
 
   return isLoading ? (
     <span>En cours de chargement...</span>
   ) : (
     <section>
-      <header>
-        <div className="contain">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/fr/thumb/f/f7/Deliveroo_logo.svg/2560px-Deliveroo_logo.svg.png"
-            alt="logo"
-          />
-          <div className="part1">
-            <div>
-              <h1>{data.restaurant.name}</h1>
-              <p className="description">{data.restaurant.description}</p>
-            </div>
-            <div>
-              <img src={data.restaurant.picture} alt="" />
-            </div>
-          </div>
-        </div>
-      </header>
+      <Hero restaurant={data.restaurant} />
       <main className="container">
         <div className="part2">
           {data.categories
             .map((elem, index) => {
-              return (
-                <div key={index}>
-                  <h2>{elem.name}</h2>
-                  <div className="menu">
-                    {elem.meals.map((elem, index) => {
-                      return (
-                        <div
-                          key={index}
-                          className="meals"
-                          onClick={() => addToCart(elem.title, elem.price)}
-                        >
-                          <div className="meal">
-                            <h3>{elem.title}</h3>
-                            <p>{elem.description}</p>
-                            <span className="price">{elem.price} € </span>
-                            {elem.popular && (
-                              <span className="popular">
-                                {" "}
-                                <FontAwesomeIcon icon="star" /> Populaire
-                              </span>
-                            )}
-                          </div>
-                          <div className="pic-meal">
-                            {elem.picture && <img src={elem.picture} alt="" />}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
+              return <Category elem={elem} addToCart={addToCart} />;
             })
             .slice(0, 6)}
         </div>
+        {/*---------------------------  CART  ----------------------------*/}
         <div className="cart">
           {toCart.length > 0 ? (
-            <button>Valider mon panier</button>
+            <button className="button">Valider mon panier</button>
           ) : (
             <button disabled>Valider mon panier</button>
           )}
-
-          {toCart.length > 0 &&
+          {Number(cartPrice) !== 0 &&
             toCart.map((elem, index) => {
               return (
                 <div className="cart1" key={index}>
-                  <span>1</span>
+                  <span>
+                    <FontAwesomeIcon
+                      className="icon"
+                      icon="minus"
+                      onClick={() => clickMinus(index)}
+                    />
+
+                    {elem.num}
+                    <FontAwesomeIcon
+                      className="icon"
+                      icon="plus"
+                      onClick={() => clickPlus(index)}
+                    />
+                  </span>
                   <span>{elem.name.name}</span>
-                  <span>{elem.price.price} €</span>
+
+                  <span>{Number(elem.price.price) * elem.num} €</span>
                 </div>
               );
             })}
-          {toCart.length > 0 ? (
+          {Number(cartPrice) !== 0 ? (
             <div>
               <div className="cart1 bordered">
                 <span>Sous-total</span>
@@ -154,5 +147,3 @@ function App() {
 }
 
 export default App;
-
-// for(const name in elem)
