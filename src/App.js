@@ -11,8 +11,6 @@ library.add(faStar, faPlus, faMinus);
 function App() {
   const [data, setData] = useState();
   const [isLoading, setIsLoading] = useState(true);
-  const [toCart, setToCart] = useState([]); // tableau (vide initialement) d'objet pour le panier
-  const [cartPrice, setCartPrice] = useState(0); // état utilisé pour le prix total du panier
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
@@ -30,73 +28,34 @@ function App() {
     fetchData();
   }, []);
 
-  const addToCart = (name, price, id, index) => {
-    // fonction utilisé pour le panier (quand on clique sur un des menus)
-    const goToCart = [...toCart];
+  let subTotal = 0;
+  const fee = 2.5;
+  cart.forEach((item) => (subTotal += Number(item.price) * item.quantity));
+  let total = subTotal + fee;
+
+  const addToCart = (item) => {
     const newCart = [...cart];
-    // console.log(id);
-    // goToCart.push({
-    //   id: { id },
-    //   name: { name },
-    //   price: { price },
-    //   num: 1,
-    // });
-    // setToCart(goToCart);
-    // console.log(goToCart[index].id);
-    if (goToCart.length !== 0) {
-      if (newCart.indexOf(id) === -1) {
-        goToCart.push({
-          id: { id },
-          name: { name },
-          price: { price },
-          num: 1,
-        });
-        newCart.push(id);
-        setCart(newCart);
-        setToCart(goToCart);
-        console.log(toCart);
-      } else {
-        // console.log(index);
-        goToCart[index].num++;
-        setToCart(goToCart);
-      }
-    } else {
-      goToCart.push({
-        id: { id },
-        name: { name },
-        price: { price },
-        num: 1,
-      });
-      newCart.push(id);
-      setToCart(goToCart);
-      setCart(newCart);
-    }
+    const exist = newCart.find((elem) => elem.id === item.id);
 
-    const newPrice = (cartPrice + Number(price)).toFixed(2);
-    setCartPrice(newPrice);
+    if (exist) {
+      exist.quantity++;
+    } else {
+      item.quantity = 1;
+      newCart.push(item);
+    }
+    setCart(newCart);
   };
 
-  const clickMinus = (index) => {
-    const goToCart = [...toCart];
-    // setToCart(goToCart);
-    const add = toCart[index].num;
-    if (add > 1) {
-      goToCart[index].num--;
-      setToCart(goToCart);
+  const clickMinus = (item) => {
+    const newCart = [...cart];
+    const exist = newCart.find((elem) => elem.id === item.id);
+    if (exist.quantity === 1) {
+      const index = newCart.indexOf(exist);
+      newCart.splice(index, 1);
     } else {
-      goToCart.splice(index, 1);
-      setToCart(goToCart);
+      exist.quantity--;
     }
-    const newPrice = (cartPrice - Number(toCart[index].price.price)).toFixed(2);
-    setCartPrice(newPrice);
-  };
-  const clickPlus = (index) => {
-    const goToCart = [...toCart];
-    const add = toCart[index].num;
-    goToCart[index].num = add + 1;
-    setToCart(goToCart);
-    const newPrice = (cartPrice + Number(toCart[index].price.price)).toFixed(2);
-    setCartPrice(newPrice);
+    setCart(newCart);
   };
 
   return isLoading ? (
@@ -108,58 +67,53 @@ function App() {
         <div className="part2">
           {data.categories
             .map((elem, index) => {
-              return <Category elem={elem} addToCart={addToCart} key={index} />;
+              return <Category item={elem} addToCart={addToCart} key={index} />;
             })
             .slice(0, 6)}
         </div>
         {/*---------------------------  CART  ----------------------------*/}
         <div className="cart">
-          {toCart.length > 0 ? (
+          {cart.length > 0 ? (
             <button className="button">Valider mon panier</button>
           ) : (
             <button disabled>Valider mon panier</button>
           )}
-          {toCart.length > 0 &&
-            toCart.map((elem, index) => {
-              return (
-                <div className="cart1" key={index}>
-                  <span>
-                    <FontAwesomeIcon
-                      className="icon"
-                      icon="minus"
-                      onClick={() => clickMinus(index)}
-                    />
-
-                    {elem.num}
-                    <FontAwesomeIcon
-                      className="icon"
-                      icon="plus"
-                      onClick={() => clickPlus(index)}
-                    />
-                  </span>
-                  <span>{elem.name.name}</span>
-
-                  <span>{Number(elem.price.price) * elem.num} €</span>
-                </div>
-              );
-            })}
-          {toCart.length > 0 ? (
+          {cart.length > 0 && (
             <div>
-              <div className="cart1 bordered">
+              {cart.map((elem, index) => {
+                return (
+                  <div className="cart1" key={index}>
+                    <div>
+                      {" "}
+                      <span className="icon" onClick={() => clickMinus(elem)}>
+                        -
+                      </span>
+                      <span>{elem.quantity}</span>
+                      <span className="icon" onClick={() => addToCart(elem)}>
+                        +
+                      </span>
+                    </div>
+
+                    <span>{elem.title}</span>
+                    <span>
+                      {(Number(elem.price) * elem.quantity).toFixed(2)} €
+                    </span>
+                  </div>
+                );
+              })}
+              <p className="bordered cart2">
                 <span>Sous-total</span>
-                <span>{Number(cartPrice).toFixed(2)} €</span>
-              </div>
-              <div className="cart1">
-                <span>Frais de livraison</span>
-                <span>{2.5} €</span>
-              </div>
-              <div className="cart1 bordered last">
+                <span>{subTotal.toFixed(2)} €</span>
+              </p>
+              <p className="cart2">
+                <span>Frais</span>
+                <span>{fee} €</span>
+              </p>
+              <p className="bordered cart2">
                 <span>Total</span>
-                <span>{(Number(cartPrice) + 2.5).toFixed(2)} €</span>
-              </div>
+                <span>{total.toFixed(2)} €</span>
+              </p>
             </div>
-          ) : (
-            <div className="emptyCart">Votre panier est vide</div>
           )}
         </div>
       </main>

@@ -1,11 +1,11 @@
 import Meal from "./Meal";
 
-const Category = ({ elem, addToCart }) => {
+const Category = ({ item, addToCart }) => {
   return (
     <div>
-      <h2>{elem.name}</h2>
+      <h2>{item.title}</h2>
       <div className="menu">
-        {elem.meals.map((elem, index) => {
+        {item.meals.map((elem, index) => {
           return (
             <Meal
               key={elem.id}

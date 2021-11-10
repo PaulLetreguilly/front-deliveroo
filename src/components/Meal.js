@@ -2,10 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Meal = ({ meal, addToCart, index }) => {
   return (
-    <div
-      className="meals"
-      onClick={() => addToCart(meal.title, meal.price, meal.id, index)}
-    >
+    <div className="meals" onClick={() => addToCart(meal)}>
       <div className="meal">
         <h3>{meal.title}</h3>
         <p>{meal.description}</p>
